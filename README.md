@@ -65,7 +65,7 @@ localVideo.srcObject = localStream;
 localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 ```
 
-### 3. Offer / Answer exchange via Socket.IO:
+### 3. Offer / Answer exchange via Socket.IO
 
 ```js
 socket.on("peer-joined", async () => {
