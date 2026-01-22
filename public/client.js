@@ -1,83 +1,75 @@
-const socket = io();
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 
-const pc = new RTCPeerConnection({
-  iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
-});
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
-const localVideo = document.getElementById("local");
-const remoteVideo = document.getElementById("remote");
+// Serve static frontend files from public/
+app.use(express.static("public"));
 
-let localStream;
-let isInitiator = false;
+// In-memory map to track rooms and connected sockets
+const rooms = new Map(); // roomName -> Set(socket.id)
 
-// Get local media before joining the room
-async function startMedia() {
-  localStream = await navigator.mediaDevices.getUserMedia({
-    video: true,
-    audio: true
+io.on("connection", (socket) => {
+  console.log(`User connected: ${socket.id}`);
+
+  // User tries to join a room
+  socket.on("join-room", (roomName) => {
+    let room = rooms.get(roomName);
+
+    if (!room) {
+      room = new Set();
+      rooms.set(roomName, room);
+    }
+
+    // Max 2 users per room
+    if (room.size >= 2) {
+      socket.emit("room-full");
+      return;
+    }
+
+    room.add(socket.id);
+    socket.join(roomName);
+    socket.roomName = roomName;
+
+    // Inform the user they joined; first user becomes initiator
+    socket.emit("joined-room", { isInitiator: room.size === 1 });
+
+    // Notify existing peer a new user joined
+    socket.to(roomName).emit("peer-joined");
+
+    console.log(`User ${socket.id} joined room: ${roomName}`);
   });
 
-  localVideo.srcObject = localStream;
+  // Relay WebRTC signals (offer/answer/candidate)
+  socket.on("signal", (data) => {
+    if (socket.roomName) {
+      socket.to(socket.roomName).emit("signal", data);
+    }
+  });
 
-  localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-}
+  // Handle disconnects
+  socket.on("disconnect", () => {
+    const roomName = socket.roomName;
+    if (!roomName) return;
 
-// WEBRTC events
-pc.ontrack = (event) => {
-  remoteVideo.srcObject = event.streams[0];
-};
+    const room = rooms.get(roomName);
+    if (!room) return;
 
-pc.onicecandidate = (event) => {
-  if (event.candidate) {
-    socket.emit("signal", { candidate: event.candidate });
-  }
-};
+    room.delete(socket.id);
+    socket.to(roomName).emit("peer-left");
 
-// Signaling
-socket.on("joined-room", ({ isInitiator: init }) => {
-  isInitiator = init;
+    // Clean up empty room
+    if (room.size === 0) rooms.delete(roomName);
+
+    console.log(`User disconnected: ${socket.id} from room: ${roomName}`);
+  });
 });
 
-socket.on("peer-joined", async () => {
-  // Only initiator creates the offer when second user joins
-  if (isInitiator) {
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    socket.emit("signal", { offer });
-  }
+// Dynamic port for deployment platforms like Render/Heroku
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-socket.on("signal", async (data) => {
-  if (data.offer) {
-    await pc.setRemoteDescription(data.offer);
-
-    // Make sure local tracks are added before creating answer
-    if (!localStream) await startMedia();
-
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    socket.emit("signal", { answer });
-  }
-
-  if (data.answer) {
-    await pc.setRemoteDescription(data.answer);
-  }
-
-  if (data.candidate) {
-    await pc.addIceCandidate(data.candidate);
-  }
-});
-
-// Room full
-socket.on("room-full", () => alert("Room full (max 2 users)"));
-
-// Join button
-document.getElementById("join").onclick = async () => {
-  // First, get local media
-  await startMedia();
-
-  // Second, join the room
-  const room = document.getElementById("room").value;
-  if (!room) return alert("Enter a room name");
-  socket.emit("join-room", room);
-};
