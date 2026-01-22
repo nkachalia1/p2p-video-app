@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>P2P Video</title>
+</head>
+<body>
+  <input id="room" placeholder="Room name" />
+  <button id="join">Join</button>
+
+  <br /><br />
+
+  <video id="local" autoplay muted playsinline></video>
+  <video id="remote" autoplay playsinline></video>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>
