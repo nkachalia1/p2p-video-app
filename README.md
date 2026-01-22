@@ -4,7 +4,7 @@
 
 A simple **peer-to-peer video conferencing app** for **2 users per room**.
 
-This app uses **WebRTC** for direct P2P video/audio streaming and **Socket.IO** for signaling. Users can enter a room name; if the room doesn’t exist, it will be created. A maximum of 2 users per room is allowed.
+This app uses **WebRTC** for direct P2P video/audio streaming and **Socket.IO** for signaling. Users can enter a room name. If the room doesn’t exist, it will be created. A maximum of 2 users per room is allowed.
 
 ---
 
@@ -52,7 +52,7 @@ socket.on("join-room", (roomName) => {
 });
 ```
 
-2. WebRTC P2P Video Connection
+### 2. WebRTC P2P Video Connection
 
 Local media capture:
 
@@ -86,7 +86,7 @@ socket.on("signal", async (data) => {
 });
 ```
 
-3. ICE Candidate Exchange
+### 4. gICE Candidate Exchange
 
 ```js
 pc.onicecandidate = (event) => {
@@ -96,18 +96,10 @@ pc.onicecandidate = (event) => {
 };
 ```
 
-Future Improvements
-
-    Screen sharing: Allow users to share their screens in addition to webcam video.
-
-    Room passwords: Add optional password protection for private rooms.
-
-    Reconnect handling: Reconnect users automatically if they lose connection.
-
-    User identities: Show usernames or avatars for each participant.
-
-    TURN server integration: For more reliable connectivity behind restrictive networks.
-
-    Mobile-friendly UI: Improve layout for phones and tablets.
-
-    Multi-user support: Extend beyond 2 users per room with scalable signaling.
+## Future Improvements
+- Screen sharing: Allow users to share their screens in addition to webcam video.
+- Room passwords: Add optional password protection for private rooms.
+- Reconnect handling: Reconnect users automatically if they lose connection.
+- User identities: Show usernames or avatars for each participant.
+- Mobile-friendly UI: Improve layout for phones and tablets.
+- Multi-user support: Extend beyond 2 users per room with scalable signaling.
