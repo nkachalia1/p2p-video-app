@@ -63,9 +63,11 @@ localStream = await navigator.mediaDevices.getUserMedia({
 });
 localVideo.srcObject = localStream;
 localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+```
 
-Offer / Answer exchange via Socket.IO:
+### 3. Offer / Answer exchange via Socket.IO:
 
+```js
 socket.on("peer-joined", async () => {
   if (isInitiator) {
     const offer = await pc.createOffer();
@@ -86,7 +88,7 @@ socket.on("signal", async (data) => {
 });
 ```
 
-### 4. gICE Candidate Exchange
+### 4. ICE Candidate Exchange
 
 ```js
 pc.onicecandidate = (event) => {
