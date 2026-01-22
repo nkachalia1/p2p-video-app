@@ -50,11 +50,13 @@ socket.on("join-room", (roomName) => {
   socket.roomName = roomName;
   rooms.set(roomName, room);
 });
+```
 
 2. WebRTC P2P Video Connection
 
 Local media capture:
 
+```js
 localStream = await navigator.mediaDevices.getUserMedia({
   video: true,
   audio: true
@@ -82,14 +84,17 @@ socket.on("signal", async (data) => {
   if (data.answer) await pc.setRemoteDescription(data.answer);
   if (data.candidate) await pc.addIceCandidate(data.candidate);
 });
+```
 
 3. ICE Candidate Exchange
 
+```js
 pc.onicecandidate = (event) => {
   if (event.candidate) {
     socket.emit("signal", { candidate: event.candidate });
   }
 };
+```
 
 Future Improvements
 
