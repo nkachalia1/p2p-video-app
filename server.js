@@ -11,7 +11,7 @@ app.use(express.static("public"));
 const rooms = new Map();
 
 io.on("connection", (socket) => {
-  socket.on("join-room", (roomName) => {
+  socket.on("join-room", ({ roomName, username }) => {
     let room = rooms.get(roomName);
     if (!room) {
       room = new Set();
@@ -23,9 +23,11 @@ io.on("connection", (socket) => {
       return;
     }
 
+    socket.username = username;
+    socket.roomName = roomName;
+
     room.add(socket.id);
     socket.join(roomName);
-    socket.roomName = roomName;
 
     socket.emit("joined-room");
     socket.to(roomName).emit("peer-joined");
@@ -35,9 +37,11 @@ io.on("connection", (socket) => {
     socket.to(socket.roomName).emit("signal", data);
   });
 
-  // 💬 CHAT RELAY
   socket.on("chat", (msg) => {
-    socket.to(socket.roomName).emit("chat", msg);
+    socket.to(socket.roomName).emit("chat", {
+      username: socket.username,
+      message: msg
+    });
   });
 
   socket.on("disconnect", () => {

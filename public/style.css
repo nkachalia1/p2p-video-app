@@ -93,3 +93,33 @@ video {
   border-radius: 8px;
   border: none;
 }
+
+button.on {
+  background: #16a34a;
+}
+
+button.off {
+  background: #dc2626;
+}
+
+button.off:hover {
+  background: #b91c1c;
+}
+
+.chat {
+  margin-top: 20px;
+}
+
+#messages {
+  height: 120px;
+  overflow-y: auto;
+  background: #020617;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+#messages div {
+  margin-bottom: 6px;
+}
