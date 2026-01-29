@@ -42,12 +42,30 @@ button {
   border-radius: 10px;
   border: none;
   cursor: pointer;
-  background: #2563eb;
   color: white;
 }
 
+button.on {
+  background: #16a34a;
+}
+
+button.off {
+  background: #dc2626;
+}
+
+button.off:hover {
+  background: #b91c1c;
+}
+
 button:hover {
-  background: #1d4ed8;
+  opacity: 0.9;
+}
+
+.error {
+  text-align: center;
+  color: #f87171;
+  margin-top: 10px;
+  font-weight: 600;
 }
 
 .videos {
@@ -55,6 +73,30 @@ button:hover {
   grid-template-columns: 1fr 1fr;
   gap: 16px;
   margin: 20px 0;
+}
+
+.video-wrapper {
+  position: relative;
+}
+
+.username {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  color: #e5e7eb;
+  font-weight: bold;
+  text-shadow: 0 0 5px black;
+  z-index: 2;
+}
+
+.status {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  color: #fff;
+  font-size: 14px;
+  text-shadow: 0 0 5px black;
+  z-index: 2;
 }
 
 video {
@@ -92,34 +134,4 @@ video {
   padding: 10px;
   border-radius: 8px;
   border: none;
-}
-
-button.on {
-  background: #16a34a;
-}
-
-button.off {
-  background: #dc2626;
-}
-
-button.off:hover {
-  background: #b91c1c;
-}
-
-.chat {
-  margin-top: 20px;
-}
-
-#messages {
-  height: 120px;
-  overflow-y: auto;
-  background: #020617;
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-
-#messages div {
-  margin-bottom: 6px;
 }

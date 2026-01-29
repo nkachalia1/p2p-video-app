@@ -6,24 +6,33 @@
 </head>
 <body>
   <div class="app">
-    <h1>🎥 P2P Video Chat</h1>
+    <h1>P2P Video Chat</h1>
 
     <div class="join">
       <input id="room" placeholder="Room name" />
-      <button id="join">Join</button>
+      <button id="join" class="on">Join</button>
     </div>
 
+    <p id="error" class="error"></p>
     <p id="status">Not connected</p>
 
     <div class="videos">
-      <video id="local" autoplay muted playsinline></video>
-      <video id="remote" autoplay playsinline></video>
+      <div class="video-wrapper">
+        <div class="username" id="localName"></div>
+        <video id="local" autoplay muted playsinline></video>
+        <div class="status" id="localStatus"></div>
+      </div>
+      <div class="video-wrapper">
+        <div class="username" id="remoteName"></div>
+        <video id="remote" autoplay playsinline></video>
+        <div class="status" id="remoteStatus"></div>
+      </div>
     </div>
 
     <div class="controls">
       <button id="toggleCam" class="on">📷 Camera ON</button>
       <button id="toggleMic" class="on">🎙️ Mic ON</button>
-      <button id="leave">🚪 Leave</button>
+      <button id="leave" class="off">🚪 Leave</button>
     </div>
 
     <div class="chat">
