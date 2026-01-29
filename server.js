@@ -13,7 +13,6 @@ const rooms = new Map();
 io.on("connection", (socket) => {
   socket.on("join-room", (roomName) => {
     let room = rooms.get(roomName);
-
     if (!room) {
       room = new Set();
       rooms.set(roomName, room);
@@ -28,12 +27,17 @@ io.on("connection", (socket) => {
     socket.join(roomName);
     socket.roomName = roomName;
 
-    socket.emit("joined-room", { isInitiator: room.size === 1 });
+    socket.emit("joined-room");
     socket.to(roomName).emit("peer-joined");
   });
 
   socket.on("signal", (data) => {
     socket.to(socket.roomName).emit("signal", data);
+  });
+
+  // 💬 CHAT RELAY
+  socket.on("chat", (msg) => {
+    socket.to(socket.roomName).emit("chat", msg);
   });
 
   socket.on("disconnect", () => {

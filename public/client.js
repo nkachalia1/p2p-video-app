@@ -1,75 +1,104 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
+const socket = io();
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+const localVideo = document.getElementById("local");
+const remoteVideo = document.getElementById("remote");
+const status = document.getElementById("status");
 
-// Serve static frontend files from public/
-app.use(express.static("public"));
+const toggleCam = document.getElementById("toggleCam");
+const toggleMic = document.getElementById("toggleMic");
+const leaveBtn = document.getElementById("leave");
 
-// In-memory map to track rooms and connected sockets
-const rooms = new Map(); // roomName -> Set(socket.id)
+const chatInput = document.getElementById("chatInput");
+const messages = document.getElementById("messages");
 
-io.on("connection", (socket) => {
-  console.log(`User connected: ${socket.id}`);
+let localStream;
+let pc;
+let camOn = true;
+let micOn = true;
 
-  // User tries to join a room
-  socket.on("join-room", (roomName) => {
-    let room = rooms.get(roomName);
+const pcConfig = {
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+};
 
-    if (!room) {
-      room = new Set();
-      rooms.set(roomName, room);
-    }
+document.getElementById("join").onclick = async () => {
+  const room = document.getElementById("room").value;
+  if (!room) return;
 
-    // Max 2 users per room
-    if (room.size >= 2) {
-      socket.emit("room-full");
-      return;
-    }
-
-    room.add(socket.id);
-    socket.join(roomName);
-    socket.roomName = roomName;
-
-    // Inform the user they joined; first user becomes initiator
-    socket.emit("joined-room", { isInitiator: room.size === 1 });
-
-    // Notify existing peer a new user joined
-    socket.to(roomName).emit("peer-joined");
-
-    console.log(`User ${socket.id} joined room: ${roomName}`);
+  localStream = await navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: true
   });
 
-  // Relay WebRTC signals (offer/answer/candidate)
-  socket.on("signal", (data) => {
-    if (socket.roomName) {
-      socket.to(socket.roomName).emit("signal", data);
+  localVideo.srcObject = localStream;
+  socket.emit("join-room", room);
+};
+
+socket.on("joined-room", () => {
+  status.textContent = "Connected";
+
+  pc = new RTCPeerConnection(pcConfig);
+
+  localStream.getTracks().forEach(track =>
+    pc.addTrack(track, localStream)
+  );
+
+  pc.ontrack = (event) => {
+    remoteVideo.srcObject = event.streams[0];
+  };
+
+  pc.onicecandidate = (event) => {
+    if (event.candidate) {
+      socket.emit("signal", event.candidate);
     }
-  });
-
-  // Handle disconnects
-  socket.on("disconnect", () => {
-    const roomName = socket.roomName;
-    if (!roomName) return;
-
-    const room = rooms.get(roomName);
-    if (!room) return;
-
-    room.delete(socket.id);
-    socket.to(roomName).emit("peer-left");
-
-    // Clean up empty room
-    if (room.size === 0) rooms.delete(roomName);
-
-    console.log(`User disconnected: ${socket.id} from room: ${roomName}`);
-  });
+  };
 });
 
-// Dynamic port for deployment platforms like Render/Heroku
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Offer created ONLY when peer joins
+socket.on("peer-joined", async () => {
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  socket.emit("signal", offer);
+});
+
+socket.on("signal", async (data) => {
+  if (data.type === "offer") {
+    await pc.setRemoteDescription(data);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socket.emit("signal", answer);
+  }
+  else if (data.type === "answer") {
+    await pc.setRemoteDescription(data);
+  }
+  else {
+    await pc.addIceCandidate(data);
+  }
+});
+
+// Controls
+toggleCam.onclick = () => {
+  camOn = !camOn;
+  localStream.getVideoTracks()[0].enabled = camOn;
+};
+
+toggleMic.onclick = () => {
+  micOn = !micOn;
+  localStream.getAudioTracks()[0].enabled = micOn;
+};
+
+leaveBtn.onclick = () => location.reload();
+
+// Chat
+chatInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && chatInput.value.trim()) {
+    socket.emit("chat", chatInput.value);
+    messages.innerHTML += `<div><strong>You:</strong> ${chatInput.value}</div>`;
+    chatInput.value = "";
+    messages.scrollTop = messages.scrollHeight;
+  }
+});
+
+socket.on("chat", (msg) => {
+  messages.innerHTML += `<div><strong>Peer:</strong> ${msg}</div>`;
+  messages.scrollTop = messages.scrollHeight;
 });

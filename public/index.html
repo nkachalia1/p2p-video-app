@@ -1,16 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>P2P Video</title>
+  <title>P2P Video Chat</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <input id="room" placeholder="Room name" />
-  <button id="join">Join</button>
+  <div class="app">
+    <h1>🎥 P2P Video Chat</h1>
 
-  <br /><br />
+    <div class="join">
+      <input id="room" placeholder="Room name" />
+      <button id="join">Join</button>
+    </div>
 
-  <video id="local" autoplay muted playsinline></video>
-  <video id="remote" autoplay playsinline></video>
+    <p id="status">Not connected</p>
+
+    <div class="videos">
+      <video id="local" autoplay muted playsinline></video>
+      <video id="remote" autoplay playsinline></video>
+    </div>
+
+    <div class="controls">
+      <button id="toggleCam">📷 Camera</button>
+      <button id="toggleMic">🎙️ Mic</button>
+      <button id="leave">🚪 Leave</button>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat">
+      <div id="messages"></div>
+      <input id="chatInput" placeholder="Type a message and press Enter…" />
+    </div>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="client.js"></script>
