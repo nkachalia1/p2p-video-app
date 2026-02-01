@@ -17,8 +17,8 @@ This app uses **WebRTC** for direct P2P video/audio streaming and **Socket.IO** 
 ## 💡 Features
 
 - Create or join a room by name
-- Maximum **2 users per room**
 - Real-time **video + audio** streaming
+- Live 2-way chat
 - Peer-to-peer connection → no heavy server-side media processing
 - Works on modern browsers with HTTPS
 
@@ -102,6 +102,5 @@ pc.onicecandidate = (event) => {
 - Screen sharing: Allow users to share their screens in addition to webcam video.
 - Room passwords: Add optional password protection for private rooms.
 - Reconnect handling: Reconnect users automatically if they lose connection.
-- User identities: Show usernames or avatars for each participant.
 - Mobile-friendly UI: Improve layout for phones and tablets.
 - Multi-user support: Extend beyond 2 users per room with scalable signaling.
